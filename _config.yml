@@ -1,0 +1,28 @@
+name: Alex Burkhart
+baseurl: "https://saterus.github.io"
+exclude: [
+  .git,
+  .gitignore,
+  .DS_Store,
+  CNAME,
+  .sass-cache,
+  Gemfile,
+  Gemfile.lock,
+  README.md,
+  tmp
+]
+permalink: "/writing/:title"
+excerpt_separator: "<!-- excerpt-end -->"
+defaults:
+  -
+    scope:
+      path: "" # entire site
+      type: "drafts"
+    values:
+      layout: "main"
+  -
+    scope:
+      path: "" # entire site
+      type: "posts"
+    values:
+      layout: "main"

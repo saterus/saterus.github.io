@@ -1,0 +1,202 @@
+---
+title: "Computer Memory Heirarchy"
+permalink: "/writing/computer_memory_heirarchy"
+excerpt: ""
+---
+
+<article>
+
+  <h2>Always a Tradeoff</h2>
+
+  <p>
+  Some of this overlaps with the overview of the virtual memory architecture. In fact, I started writing much of this material
+  for that article, before deciding it was slightly off topic and cutting it.
+  </p>
+
+  <p>
+  One of the most fundamental concepts to understand is the tradeoffs between the access speed and storage size.
+  As access speed increases, the storage size decreases.
+  As storage size increases, the access speed decreases.
+  This is largely driven by price of building physical hardware.
+  Building components with extremely fast access speeds is quite expensive.
+  This restricts them to being used in very specific situations where the speed of access is more important than the total storage size.
+  </p>
+
+  <p>
+  Holding the honor of being the fastest (and most expensive) way to store some bits is the <a href="https://en.wikipedia.org/wiki/Processor_register">CPU Register</a>.
+  Accessing the data held within a register is effectively free.
+  The CPU does not need to wait for anything.
+  The register data can be accessed as part of processing an instruction.
+  Unfortunately, registers are <strong>very</strong> small.
+  A modern Intel/AMD CPU will have 16 general purpose registers that can each hold 64 bits.
+  Storing data in the CPU allows for very fast access, but it is extremely limited.
+  <span class="ref">CPU architectures will specify requirements for the sizes and define the role each register will play in the overall operation of the CPU. https://en.wikipedia.org/wiki/X86#x86_registers</span>
+  </p>
+
+  <p>
+  Since we can't really <em>store</em> data in the CPU, it will need to periodically load data from some where else to do work.
+  We use <a href="https://en.wikipedia.org/wiki/Dynamic_random-access_memory">Dynamic Random Access Memory</a> as the main working memory of a computer.
+  It is far cheaper to produce large sticks of DRAM than it is to add additional CPU registers.
+  It is not uncommon to see desktops or laptops with 16GB of RAM.
+  Even modern smart phones can have
+    <a href="https://en.wikipedia.org/wiki/IPhone_6">1</a>-<a href="https://en.wikipedia.org/wiki/Nexus_5">2</a> GB of RAM.
+  In other words, devices which are commonly still regarded as "memory constrained environments",
+    now have many orders of magnitude more capacity than a modern CPU can hold in all of its registers.
+  </p>
+
+  <p>
+  The problem is that it takes somewhere in the neighborhood of 60ns to load data from main memory into the CPU.
+  You might say, "Wow, the unit on that measurement is in <a href="https://en.wikipedia.org/wiki/nanosecond">billionths of a second</a>, super fast!"
+  Unfortunately, modern CPUs are <strong>so fast</strong> that loading from main memory will waste hundreds of instruction cycles.
+  Through the magic of modern <a href="">CPU Pipelining</a> a Haswell chip can be expected to execute ~4 instructions per clock cycle per core<span class="ref">(ref microarchitecture pdf)</span>.
+  The same chip running at 3GHz can run through 12 billion instructions in a second (4 instructions per clock cycle * 3B clock cycles per second).
+  So if loading a single 64 bit value from main memory requires 60ns on average, it is actually causing the CPU to stall for 720 instructions.
+  That's quite a difference from the 0 instruction overhead of accessing the value inside a register.
+  Instead of doing real work, the CPU is just waiting.
+  <span class="ref">Now, not all is lost, since modern CPUs are great at predicting this stall and try to find other work to do.</span>
+  <span class="ref">
+    (3,000,000,000 internal cpu cycles / second) * (1 / 20 cpu multiplier) = 150mhz front size bus speed
+
+  (3,000,000,000 cycles / second) * (1 second / 1,000,000,000) = 3 instructions per nanosecond
+  (3 instructions / nanosecond) * (20 nanoseconds / load) = 60 instructions per load
+  </span>
+  </p>
+
+  <p>
+  As a solution to this, hardware engineers have introduced <a href="https://en.wikipedia.org/wiki/CPU_cache">caching</a> between the CPU registers and main memory.
+  These caches are used not only the data needed by a program, but also the instructions themselves.
+  When a value is loaded from main memory, it is placed into a cache to provide fast access time for the very near future.
+  These caches have much faster access speed than main memory, while also holding much smaller amounts of data.
+  Before the CPU attempts to fetch data from main memory, it first checks its caches.
+  If found, a "cache hit", the CPU can continue to its real work without needing to wait on loading the data from main memory.
+  CPUs commonly have several <a href="https://en.wikipedia.org/wiki/CPU_cache#Multi-level_caches">layers</a> of these caches, with progressively more storage and slower access.
+  </p>
+
+  <aside>
+    <table>
+      <thead>
+        <tr><th>Intel Core i5 4590T</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Architecture</td>
+          <td>Haswell</td>
+        </tr>
+        <tr>
+          <td>Clock Speed</td>
+          <td>3GHz</td>
+        </tr>
+        <tr>
+          <td>Instructions Per Cycle</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <th>Cache Level</th>
+          <th>Size</th>
+          <th>Access Speed</th>
+        </tr>
+        <tr>
+          <td>L1 Cache</td>
+          <td>64KB</td>
+          <td>4 cycles</td>
+        </tr>
+        <tr>
+          <td>L2 Cache</td>
+          <td>256KB</td>
+          <td>12 cycles</td>
+        </tr>
+        <tr>
+          <td>L3 Cache</td>
+          <td>6MB</td>
+          <td>36 cycles</td>
+        </tr>
+      </tbody>
+    </table>
+  </aside>
+
+  <p>
+  Since we are simply trying to gain some intuition, let's look at Intel's latest CPU architecture, Haswell, in more detail.
+  The Intel i5 4590T, a midrange quadcore CPU from last year, runs at 3GHz and has 3 levels of CPU caching.
+  Each core has a 64KB L1 Cache, 256KB L2 Cache, and all 4 cores share a 6MB L3 Cache.
+  L1 is the smallest, but fastest cache available.
+  Accessing L1 takes only 4 instruction cycles.
+  Next we try our L2 Cache.
+  Our Haswell can load data out of the L2 Cache in 12 cycles.
+  Finally the CPU checks L3, its slowest, but largest cache.
+  This takes 36 cycles, but that's still a tremendous bargain compared to reaching out to main memory.
+  It can check all of these caches in parallel, and continue execution with the first result it finds.
+  </p>
+
+  <p>
+  This caching strategy allows the CPU to avoid the costly stalls required by fetching from main memory.
+  On the bright side, even when we do need to go to main memory to fetch data, the CPU is still able to preform other work.
+    <span class="ref">Ref additional reading.</span>
+  The last important thing to note about these caches is that each time the CPU <em>writes</em> to main memory, it also writes that value to its caches.
+  This ensures fast, <a href="https://en.wikipedia.org/wiki/Cache_coherence">consistent</a> reads from the cache.
+
+  <span class="ref">
+    It took me quite a while to find an exact specification for the cache latencies.
+    http://www.7-cpu.com/cpu/Haswell.html
+    This page confirmed and gave exact details for all the different levels of the cache.
+  </span>
+  <span class="ref">
+    http://www.anandtech.com/show/3851/everything-you-always-wanted-to-know-about-sdram-memory-but-were-afraid-to-ask/
+    http://mechanical-sympathy.blogspot.com/2013/02/cpu-cache-flushing-fallacy.html
+    http://www.gamedev.net/page/resources/_/technical/general-programming/a-journey-through-the-cpu-pipeline-r3115
+    http://www.agner.org/optimize/microarchitecture.pdf
+  </span>
+  <span class="ref">
+    If you are curious what else the processor might be doing, try looking up more information at the following layers:
+    1) Compiler: instruction reordering
+    2) OS: cpu scheduling &amp; cooperative multithreading
+    3) CPU: pipelining, prefetching memory, out of order execution
+  </span>
+  </p>
+
+  <p>
+  This pattern of speed vs size continues into
+    <a href="https://en.wikipedia.org/wiki/Solid-state_drive">solid state drives</a> and
+    <a href="https://en.wikipedia.org/wiki/Hard_disk_drive">hard disk drives</a>.
+  Both forms of storage are common nowadays and the competition between the two immediately reflects the speed vs size/price tradeoff.
+  HDDs continue to be far more cost effective at storing large amounts of data.
+  A 3-4TB HHD can easily be purchased for the price of a 128GB SSD.
+  As expected, this advantage is reversed when examining access speed.
+  A typical solid state drive will have read latency of around 100 microseconds (0.1ms),
+    while a typical 7200rpm hard disk drive will have a read latency of 4000 microseconds (4ms).
+  The SSD can be expected to read data 40x faster than a traditional HDD.
+  This is certainly the reason for their popularity.
+  </p>
+
+  <h2>Outline</h2>
+  <pre>
+  * Speed vs Size vs Price
+    * cache vs main memory vs disk
+    * L1 L2 L3
+    * cache miss
+    * cache awareness
+    * disk swapping
+    * network
+    * persistance
+  * OS Memory Responsibilities
+    * os talks to hardware
+    * applications talk to os
+    * os allows multiple processes to run
+    * processes sandboxed
+    * os boots from disk
+  * OS Virtual Addresses
+    * starts laying out a plan for divvying up memory
+      * actually switches kernel processes to use VMAs
+    * address translation table
+      * virtual <-> physical addresses
+      * pages
+    * let each process think it has infinite memory
+  </pre>
+
+
+  <h3>References:</h3>
+  <pre>
+  http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
+  </pre>
+
+</article>
+

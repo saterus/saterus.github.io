@@ -1,0 +1,30 @@
+---
+layout: main
+title: Some Thoughts
+---
+
+<article class="archive">
+  {% if site.posts == empty %}
+    <div class="archive-entry">
+      <div class="title">
+        Coming Soon!
+      </div>
+    </div>
+  {% endif %}
+
+  {% for post in site.posts %}
+    <div class="archive-entry">
+      <div class="title">
+        <a href="{{ post.url }}">
+          {% if post.subtitle %}
+            {{ post.title }}: {{ post.subtitle }}
+          {% else %}
+            {{ post.title }}
+          {% endif %}
+        </a>
+      </div>
+      <div class="excerpt">{{ post.excerpt | replace: "</h2>", ": " | strip_html }}</div>
+    </div>
+  {% endfor %}
+</article>
+

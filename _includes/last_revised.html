@@ -1,0 +1,10 @@
+<div class="last-revised">
+  <span class="label">Last Revised: </span>
+  <span class="timestamp">
+    {% if page.last_revised %}
+      {{ page.last_revised | date_to_long_string }}
+    {% elsif page.date %}
+      {{ page.date | date_to_long_string }}
+    {% endif %}
+  </span>
+</div>

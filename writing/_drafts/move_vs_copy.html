@@ -1,0 +1,64 @@
+---
+title: "Move vs Copy"
+subtitle: "Control Your Memory"
+permalink: "/writing/move_vs_copy"
+---
+
+<article>
+  <h2>Section Title</h2>
+  <p>
+  Lorem ipsum dolor sit amet, <a href="/">consectetur adipiscing elit</a>. Donec a diam lectus. Sed sit amet ipsum mauris.<!-- excerpt-end --> Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem. Ut turpis felis, pulvinar a semper sed, adipiscing id dolor. Pellentesque auctor nisi id magna consequat sagittis. Curabitur dapibus enim sit amet elit pharetra tincidunt feugiat nisl imperdiet. Ut convallis libero in urna ultrices accumsan. Donec sed odio eros. Donec viverra mi quis quam pulvinar at malesuada arcu rhoncus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In rutrum accumsan ultricies. Mauris vitae nisi at sem facilisis semper ac in est.
+  </p>
+  <p>
+  marchelzo_: copies can be optimised out sometimes
+shep-home
+huon: true fact. Maybe I'm questioning why there is an into_iter at all
+huon
+marchelzo_: a move avoids a "semantic copy"
+meh
+huon, if there is I can't find it
+krdln
+meh: from_raw_mut_buf
+cristea
+Thanks guys for nice help (reem, Sharp and nathan7 this time). I might just use rust for my school project after all =)
+nathan7
+marchelzo_: if you're popping out from a Vec, that requires a copy
+meh
+snap
+huon
+shep-home: because one may need the elements by-value and one can't move out of a `&T`
+meh
+krdln, thanks, that was hard to find :P
+nathan7
+marchelzo_: because the returned value is not bound to the lifetime of the Vec
+meh
+from the name I had
+huon
+marchelzo_: nathan7: there's two distinct meanings of "copy" in Rust: byte copy and "semantic" copy
+krdln
+meh: If you went one level up (to slice), it's just near your function :)
+huon
+marchelzo_: http://stackoverflow.com/a/24253573/1256624
+huon
+marchelzo_: a semantic copy is, e.g. copying a Vec by allocating a new Vec and then copying each element across
+huon
+marchelzo_: a move of a Vec will just copy the 24 (or 12) bytes on the stack, it will not follow the pointer/do allocations/...
+krdln
+marchelzo_: (And semantic copy is called Clone/.clone() in Rust)
+marchelzo_
+ok I see
+marchelzo_
+thank you
+saterus
+does move actually call .clone()?
+nathan7
+no
+nathan7
+a move never does anything but a memcpy
+</p>
+<p>
+https://stackoverflow.com/questions/24253344/move-vs-copy-in-rust/24253573#24253573
+http://paulkoerbitz.de/posts/Understanding-Pointers-Ownership-and-Lifetimes-in-Rust.html
+</p>
+</article>
+

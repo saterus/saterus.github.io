@@ -1,0 +1,54 @@
+// fonts
+$serif: 'Lato', serif
+$sans-serif: 'Montserrat', sans-serif
+
+// layout sizes
+$main-content-width: 900px
+$main-content-padding: 30px
+$vertical-padding: 60px
+
+// color defs
+$primary-color: hsl(20,72,36)
+$secondary-color: hsl(20,57,54)
+$faded-primary-color: hsl(20,50,70)
+$text-color: hsl(0,0,90%)
+$muted-text-color: darken($text-color, 15%)
+$header-text-color: lighten($text-color, 5%)
+$dark-text-color: hsl(20, 30%, 17%)
+$muted-dark-text-color: desaturate(lighten($dark-text-color, 30%), 30%)
+
+// color aliases
+$header-color: hsla(0,0,0,0.55)
+$hero-color: $header-color
+$footer-color: $header-color
+$body-color: hsl(20, 23%, 94%)
+
+$link-color:  darken($text-color, 10%)
+$link-hover-color: $primary-color
+$dark-link-color: darken($secondary-color, 10%)
+$dark-link-hover-color: lighten($secondary-color, 10%)
+
+$quote-block-border-color: #ccc
+
+$image-filter-color: hsla(0,0,0,0.7)
+$hover-image-filter-color: hsla(0,0,0,0.5)
+$image-filter: linear-gradient($image-filter-color, $image-filter-color)
+$hover-image-filter: linear-gradient($hover-image-filter-color, $hover-image-filter-color)
+
+// layout sizes
+$vertical-height: 100vh
+$under-cover-height: 90vh
+$cover-peek-height: $vertical-height - $under-cover-height
+$footer-height: $cover-peek-height
+
+// breakpoints
+$full-width-breakpoint: break_at(900px)
+$header-breakpoint-large: break_at(600px)
+$header-breakpoint-mid: break_at(490px)
+$hero-breakpoint-large: break_at(597px)
+$hero-breakpoint-mid: break_at(510px)
+$archive-breakpoint-mid: break_at(480px)
+$portfolio-breakpoint-mid: break_at(600px)
+$portfolio-breakpoint-large: break_at(900px)
+$related-articles-breakpoint-small: break_at(420px)
+

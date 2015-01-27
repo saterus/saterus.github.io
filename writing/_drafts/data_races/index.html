@@ -1,0 +1,142 @@
+---
+title: "Data Races"
+subtitle: "Adventures in Concurrency"
+permalink: "/writing/data_races"
+---
+
+<!-- excerpt-end -->
+<article>
+  <h2>Concurrency</h2>
+
+
+  <h2>The Promise of Rust</h2>
+
+  <p>Visitors to <a href="http://www.rust-lang.org/">rust-lang.org</a> are immediately promised a great set of unique features, one of which is the complete elimination of <em>data races</em>.</p>
+
+  <p class="quote">Rust is a systems programming language that runs blazingly fast, prevents almost all crashes*, and <em>eliminates data races</em>.</p>
+
+  <p>Bold statement. The emphasis is mine though. Elimination. This language is promising big things.</p>
+
+  <p>To put this claim in perspective today, we will examine what race conditions are in general,
+  what data races are specifically, and how impacted various languages are by data races.</p>
+
+  <p>
+    But what <em>is</em> a data race? When I first encountered Rust, I'd heard of <em>race conditions</em>, but never data races. Maybe they are related?
+  </p>
+
+  <p>
+  The top search result for <em>data race</em> is the <a href="https://en.wikipedia.org/wiki/Race_condition">Wikipedia entry for race condition</a>.
+  Sounds related.
+  All race conditions center around a bugs stemming from the two or more things happening an in unexpected order.
+  When events happen in the expected order, everything works properly.
+  Race conditions are the unexpected case.
+  </p>
+
+  <p>
+  While race conditions are a broad classification timing bugs, data races are a very specific type of race condition.
+  Specifically, data races occur when memory is accessed in an unsynchronized enviroment.
+  </p>
+
+  <h2>A Concrete Example</h2>
+
+  <p>
+  The purpose of the example is simple: increment a counter 20,000 times.
+  The over-confident programmers we are, we decide to take advantage of our 2 cpu cores by splitting up the task between 2 threads, each doing half of the work.
+  </p>
+
+  {% include_relative c_example.html %}
+
+  <p>
+  We run into a problem the minute we have 2 threads trying to increment the counter's value at the same time.
+  Looking at the problem at a low level, the <code>do_work</code> function will read a value from memory,
+  increment the contents, and write the new value back to the same memory location.
+  Both of our threads will perform this operation 10,000 times, with both threads running at the same time.
+  Let's look at the problem step by step.
+  </p>
+
+  <ol>
+    <li><code>worker_a</code> reads the value 8200 from memory.</li>
+    <li><code>worker_a</code> is preempted by the CPU, allowing <code>worker_b</code> to run.</li>
+    <li><code>worker_b</code> reads the value 8200 from memory.</li>
+    <li><code>worker_b</code> increments the value to 8201.</li>
+    <li><code>worker_b</code> write the value 8201 to memory.</li>
+    <li><code>worker_b</code> is preempted by the CPU, allowing <code>worker_a</code> to run.</li>
+    <li><code>worker_a</code> increments the value to 8201.</li>
+    <li><code>worker_a</code> write the value 8201 to memory.</li>
+  </ol>
+
+  <p>
+  We lost a write! <code>worker_b</code>'s write of 8201 was overwritten by <code>worker_a</code>'s write of 8201.
+  We are left with 8201 in memory, but both threads thought they performed the work to move the counter from 8200 to 8201.
+  2 of our 20,000 units of work collided and only 1 unit of work was actually performed!
+  By the time our program executes 20,000 times (10,000 units of work performed by each thread), the counter is off quite significantly.
+  Instead of the counter reading 20,000, it might read 15,281.
+  Or 12,929. When run separate 100 times, the counter will yield 100 different answers.
+  </p>
+
+  <p>
+  Now we have an example of a data race!
+  The two unsynchronized threads in the previous example both wrote to a shared memory location.
+  This caused some writes to be lost.
+  </p>
+
+  <p>
+  It is worth noting that this is not the only example of a data race (but it is a simple one).
+  Data races can manifest themselves in much less obvious ways.
+  In the example above, we knew the desired outcome was 20,000.
+  In a real world scenario, it is not always so simple to spot a discrepancy.
+  </p>
+
+  <h2>A Curious Example</h2>
+
+  <p>
+  Let's see how the same behavior can less problematic in Ruby.
+  <em>Note that I've wrapped the counter in a Hash as a poor rubyist's mutable reference to the same memory.</em>
+  </p>
+
+  {% include_relative ruby_example.html %}
+
+  <p>
+  Interestingly, there's no data race. This always logs 20,000 units of work. Every time. Why is Ruby immune?
+  </p>
+
+  <h3>Ruby's GIL</h3>
+
+  <p>
+  The secret is that the Ruby interpreter cheats while threading.
+  It implicitly wraps all threads in a mutual exclusion lock, preventing any actual concurrency between the Ruby threads themselves.
+  It allows very specific types of non-blocking execution to take place, but this tends to be limited to external I/O or system calls.
+  Any thread executing Ruby code will be forced to wait for the Global Interpreter Lock.
+  </p>
+
+
+  <div style="display:none;">
+    <div>
+    - threads in c
+      - data race!
+    - threads in ruby
+      - safe, but
+      - gil discussion
+    - threads in rust
+      - safe, because
+      - discussion of ownership
+    </div>
+
+    <div class="references">
+      https://en.wikipedia.org/wiki/Race_condition
+      https://people.mozilla.org/~acrichton/rust-talk-2014-08-27/
+      https://www.youtube.com/watch?v=oAZ7F7bqT-o
+      http://blog.regehr.org/archives/490
+      https://en.wikipedia.org/wiki/Global_Interpreter_Lock
+      http://ablogaboutcode.com/2012/02/06/the-ruby-global-interpreter-lock/
+    </div>
+  </div>
+
+</article>
+
+
+{% contentfor related-articles %}
+  <a class="related-article" href="/writing/move_vs_copy"><i class="fa fa-long-arrow-left"></i> Move vs Copy</a>
+  <a class="related-article" href="/writing/virtual_memory_architecture">Virtual Memory Architecture <i class="fa fa-long-arrow-right"></i></a>
+{% endcontentfor %}
+

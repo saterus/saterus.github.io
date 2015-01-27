@@ -1,0 +1,8 @@
+@function break_at($min-width)
+  @return "only screen and (min-width: #{$min-width})"
+
+@mixin scrim($inner-color, $outer-color)
+  background-image: radial-gradient(closest-side, $inner-color, $outer-color 80%, transparent)
+
+.clearfix
+  +clearfix

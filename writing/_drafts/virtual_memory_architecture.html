@@ -1,0 +1,288 @@
+---
+title: "Virtual Memory Architecture"
+subtitle: "A Brief Overview"
+permalink: "/writing/virtual_memory_architecture"
+excerpt: "The way a computer manaages memory is intimately connected to how computer hardware is designed, operating systems handle that complexity, and how our languages and compilers expose or abstract those details.  Having a basic understanding of these things is not usually necessary for day-to-day Ruby work, but in Rust it is quite useful."
+---
+
+<article>
+
+  <h2>Explicit Content</h2>
+
+  <p>
+  Lately I've been trying to teach others why <a href="http://www.rust-lang.org/">Rust</a> is so amazing.
+  My coworkers and I use a lot of
+  <a href="https://www.ruby-lang.org/en/">high</a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">level</a>
+  <a href="http://clojure.org/">languages</a>
+  at <a href="http://neo.com/">Neo</a>.
+  This gives us a lot of expertise in very quickly building certain types of applications for our clients.
+  Those high level languages value abstracting away any unnecessary details from the developer.
+  I have enjoyed an amazing level of productivity in my day to day work by blissfully ignoring how computers actually work.
+  </p>
+
+  <p>
+  Rust, however, values being explicit over being implicit.
+  Allowing the programmer to make explicit choices is a natural result of Rust being designed as a systems language.
+  This is both a blessing and a curse.
+  One of the places that Rust very obviously forces explicitness is when dealing with memory.
+  This <em>ability</em> leads directly to the developer needing to devote some amount of attention to how memory is managed.
+  The way a computer manaages memory is intimately connected to how computer hardware is designed, operating systems handle that complexity, and how our
+    languages and compilers expose or abstract those details.
+  Having a basic understanding of these things is not usually necessary for day-to-day Ruby work, but in Rust it is quite useful.
+  The goal is not to become a hardware engineer, kernel developer, or compiler expert.
+  <strong>The goal is to gain some basic intuition about what the computer is actually doing.</strong>
+  <span class="ref">And I'm sure that hardware engineers, kernel developers, and compiler experts will all have
+    quite fervent (and justified) objections to some of my simplifications in this article.</span>
+  </p>
+
+  <h2>Speed vs Size</h2>
+
+  <p>
+  One of the most fundamental concepts to understand is the tradeoffs between the access speed and storage size.
+  As access speed increases, the storage size decreases.
+  As storage size increases, the access speed decreases.
+  This is largely driven by price of building physical hardware.
+  Building components with extremely fast access speeds is quite expensive.
+  This restricts them to being used in very specific situations where the speed of access is more important than the total storage size.
+  </p>
+
+  <p>
+  Let's examine some of the speed vs size vs price tradeoffs for the different pieces of a computer.
+  We will pretend to examine a modern desktop computer, with a 4 core Haswell CPU, 8GB of RAM, an SSD, and a HHD.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Storage Mechanism</th>
+        <th>Number per Device</th>
+        <th>Access Speed</th>
+        <th>Total Storage Size</th>
+        <th>Total Price</th>
+        <th>Price per MB</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>CPU Register</td>
+        <td>16x general purpose 64bit registers per core</td>
+        <td>Instant</td>
+        <td>4KB</td>
+        <td>$200</td>
+        <td>$48,828</td>
+      </tr>
+      <tr>
+        <td>L1 Cache</td>
+        <td>1x64KB cache per core</td>
+        <td>4 cycles</td>
+        <td>256KB</td>
+        <td>$200</td>
+        <td>$781.25</td>
+      </tr>
+      <tr>
+        <td>L2 Cache</td>
+        <td>1x256KB cache per core</td>
+        <td>12 cycles</td>
+        <td>1MB</td>
+        <td>$200</td>
+        <td>$195.31</td>
+      </tr>
+      <tr>
+        <td>L3 Cache</td>
+        <td>1x6MB cache shared by all cores</td>
+        <td>36 cycles</td>
+        <td>6MB</td>
+        <td>$200</td>
+        <td>$33.33</td>
+      </tr>
+      <tr>
+        <td>RAM</td>
+        <td>1x8GB sticks per device</td>
+        <td>60ns</td>
+        <td>8GB</td>
+        <td>$64</td>
+        <td>$0.008</td>
+      </tr>
+      <tr>
+        <td>SSD</td>
+        <td>1x128GB drives per device</td>
+        <td>100us</td>
+        <td>128GB</td>
+        <td>$150</td>
+        <td>$0.001171</td>
+      </tr>
+      <tr>
+        <td>HHD</td>
+        <td>1x4TB drives per device</td>
+        <td>4ms</td>
+        <td>4TB</td>
+        <td>$150</td>
+        <td>$0.0000375</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+  As you can see, price and speed are very tightly related, and inversely related to storage size.
+  So much of modern hardware design, operating systems design, and even application design is actually centered around these exact tradeoffs.
+  If fast, cheap, and dense memory were available, there would never have been a need to invent
+  <a href="https://en.wikipedia.org/wiki/Pipeline_(computing)">instruction pipelines</a>,
+  <a href="https://en.wikipedia.org/wiki/CPU_cache">layers of CPU caches</a>,
+  <a href="https://en.wikipedia.org/wiki/DDR_SDRAM">double data rate RAM</a>,
+  and
+  <a href="https://en.wikipedia.org/wiki/Out-of-order_execution">many</a>
+  <a href="https://en.wikipedia.org/wiki/Speculative_execution">other</a>
+  <a href="https://en.wikipedia.org/wiki/Translation_lookaside_buffer">concepts</a>.
+  </p>
+
+  <h2>Operating System Responsibilities</h2>
+
+  <p>
+  One of the primary responsibilities of an operating system is to interact with hardware
+    and provide controlled access of those resources to applications.
+  The kernel defines <a href="https://en.wikipedia.org/wiki/System_call">system calls</a> for accessing the hardware.
+  Application programmers use those abstractions in their code instead of directly accessing the hardware.
+  Examples of this would include accessing a hard drive, a network card, or printer.
+  This ensures that multiple processes can share those same hardware resources in a cooperative way, managed by the OS.
+  </p>
+
+  <p>
+  This brings up another enormous responsibility of the operating system: process management.
+  The operating system's <a href="https://en.wikipedia.org/wiki/Scheduling_(computing)">CPU Scheduler</a>
+    decides when each process will be sent to a CPU to be executed.
+  The time spent actually executing on the CPU is controlled by the OS, not the application process.
+  This guards processes from each other, allowing an application developer to pretend their process is the only process running on the machine.
+  Each process believes its instructions are executed on the CPU, one after another until the end of time.
+  There are other security mechanisms provided by the operating system to sandbox processes from each other, but each is attempting to
+    enforce this abstraction.
+  </p>
+
+  <h2>Virtual Addressing</h2>
+
+  <p>
+  Finally, the operating system is responsible to the management of physical memory.
+  It does this to further the illusion that each process is the only process in the entire world.
+  Physical memory addresses are hidden from each process, instead going through an address translation step before being usable by the process.
+  Physical addresses are simply a number assigned a given byte in memory, starting with 0, counting up each byte until the limit of RAM.
+  Addresses are usually visually represented as a 8 hex characters for 32bit addresses, <code>0x802FBA29</code>, and 16 hex characters for 64bit addresses, <code>0x718FCAA9000EEA97</code>.
+  Virtual addresses are organized by the operating system, which keeps track of which process a physical address has been assigned to.
+  Processes cannot access memory outside their assigned virtual address space (doing so trips the OS's security protocols and triggers an accompanying segfault).
+  </p>
+
+  <p>
+  The virtual addresses assigned by the OS are assigned to a process as a page, rather than byte address by byte address.
+  A page is simply a range of physical addresses that correspond to a range of virtual addresses.
+  4KB is a pretty standard page size, giving the entire 4KB range of addresses to a process to use.
+  This bulk assignment greatly simplifies bookkeeping, allows the OS to assign contiguous memory,
+    and for applications to take advantage of data locality.
+  The OS tracks this in its <a href="https://en.wikipedia.org/wiki/Page_table">page table</a>, and is generally assisted by
+    <a href="https://en.wikipedia.org/wiki/Translation_lookaside_buffer">special hardware inside the CPU</a>
+    to accelerate address translation.
+  </p>
+
+  <p>
+  The amazing part about this entire strategy is that the operating system kernel processes themselves get loaded
+    into virtual memory space too.
+  The bootloader fires up the OS boot process, and somewhere in the middle, it switches from using physical addresses
+    to using virtual addresses, just like any normal user process.
+  By doing this, it never has to worry about anyone, including the kernel itself, misbehaving by mucking about in physical address space.
+  The kernel programs themselves are also easier to write, since they too can pretend to be
+    <em>the only process that exists in the entire world</em>.
+  </p>
+
+  <p>
+  Example page translation table diagram.
+  </p>
+
+  <h3>Loop it back to Rust</h3>
+
+  <p>
+  Bait and switch? Why are we talking about this?
+  </p>
+
+  <h2>Virtual Memory Layout</h2>
+
+  <p>
+  Here's how the OS lays out the memory for each process.
+  </p>
+
+  <p>
+  Insert diagram.
+  </p>
+
+  <h2>Text</h2>
+  <p>
+  </p>
+
+  <h2>Data</h2>
+  <p>
+  </p>
+
+  <h2>Stack</h2>
+  <p>
+  </p>
+
+  <h2>Heap</h2>
+  <p>
+  </p>
+
+  <h2>Caveats</h2>
+  <p>
+  </p>
+
+
+  <h2>Outline</h2>
+  <pre>
+  * Fixme
+    * Start with a Story
+    * Explain where we are going with a diagram
+    * Add hand drawn sketches as necessary
+      * overlay hand drawn arrows on top of html diagrams
+  ~ Intro
+    x explicitness
+    x intuition is goal
+  x Speed vs Size vs Price
+    x cache vs main memory vs disk
+  * OS Memory Responsibilities
+    x os talks to hardware
+    x applications talk to os
+    x os allows multiple processes to run
+    x processes sandboxed
+    x os boots from disk
+  * OS Virtual Addresses
+    x starts laying out a plan for divvying up memory
+      x actually switches kernel processes to use VMAs
+    * address translation table
+      * virtual <-> physical addresses
+      * pages
+    x let each process think it has infinite memory
+  * Virtual Memory Architecture
+    * Text
+    * Data
+    * Stack
+    * Heap
+    * Caveats:
+      * true layout varies by OS
+      * stack address randomization, etc.
+      * dynamically loaded libraries
+  * Processes vs Threads
+    * shared text, data
+    * separate stacks
+    * shared heap
+    * inter process comm = sharing process memory
+  * Malloc
+    * Memory Pages
+    * Small vs large allocations
+    * Fragmentation
+    * Custom strategies
+  </pre>
+
+
+  <h3>References:</h3>
+  <pre>
+  http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
+  </pre>
+
+</article>
+

@@ -1,0 +1,6 @@
+{% capture result %}{% contentblock related-articles %}{% endcapture %}
+{% if result != empty %}
+  <div class="related-articles">
+    {{ result }}
+  </div>
+{% endif %}

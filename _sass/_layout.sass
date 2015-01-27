@@ -1,0 +1,245 @@
+*
+  box-sizing: border-box
+
+body
+  min-width: 320px
+  background: $body-color
+
+.under-cover
+  +position(fixed, 0px 0px $cover-peek-height 0px)
+  z-index: 0
+  background: no-repeat center center fixed
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("/assets/images/carpenters_rule.jpg")
+  background-size: cover
+  height: $under-cover-height
+  +display(flex)
+  +justify-content(center)
+  +align-items(center)
+
+=fixed-width-header-container
+  margin: 0 auto
+
+  @media #{$header-breakpoint-mid}
+    max-width: $main-content-width
+    padding: 0 $main-content-padding
+
+header
+  +position(absolute, 0px 0px null 0px)
+  +fixed-width-header-container
+
+nav
+  +display(flex)
+  +justify-content(space-between)
+  width: 100%
+  margin: 0 auto
+
+  @media #{$header-breakpoint-large}
+    width: 450px
+    float: right
+
+.nav-item
+  +flex(1 1 100px)
+  background-color: $header-color
+  text-align: center
+  border-bottom: transparent 8px solid
+
+  &:hover
+    border-bottom: $primary-color 8px solid
+    transition: border-bottom 0.15s ease-in
+
+  @media #{$header-breakpoint-mid}
+    +flex-grow(0)
+
+  a
+    display: block
+    +size(100% 100%)
+    padding: 30px 0
+
+.hero-wrapper
+  +fixed-width-header-container
+  +flex(1 1 auto)
+  margin-top: 75px
+
+
+.hero
+  background-color: $hero-color
+  padding: $vertical-padding 50px
+
+  h1
+    text-align: center
+    margin: 0 0 15px 0
+
+  h2
+    text-align: center
+    margin: 0
+
+  .labels
+    text-align: right
+    white-space: nowrap
+
+  @media #{$hero-breakpoint-mid}
+    .labels
+      +display(flex)
+      +flex-wrap(wrap)
+      +justify-content(center)
+      text-align: center
+      height: 2rem
+
+    .label-pair
+      +flex(0 0 30%)
+      margin-top: 10px
+
+  @media #{$hero-breakpoint-large}
+    .labels
+      white-space: inherit
+      +flex-wrap(nowrap)
+
+    .label-pair
+      +flex(0 0 20%)
+
+  .play
+    display: none
+
+  .label-pair:hover
+    .work
+      display: none
+    .play
+      display: block
+
+.last-revised
+  +position(absolute, null 30px 30px null)
+  color: fade-out($muted-text-color, 0.2)
+  font-weight: 100
+
+  .label
+    transition: opacity 0.3s ease-in
+    opacity: 0
+  &:hover
+    .label
+      opacity: 1
+
+main
+  margin-top: $under-cover-height
+  position: relative
+  z-index: 1
+  background-color: $body-color
+  border-top: 8px solid $primary-color
+
+article
+  max-width: $main-content-width
+  min-height: 50vh
+  padding: $vertical-padding $main-content-padding
+  margin: 0 auto
+
+  @media #{$full-width-breakpoint}
+    padding: $vertical-padding 0
+
+.archive-entry
+  margin: 0 auto 30px
+
+  .excerpt
+    overflow: hidden
+    padding-left: 30px
+    border-left: 4px solid $quote-block-border-color
+    margin: 20px 20px 20px 0
+
+footer
+  width: 100%
+  position: relative
+  z-index: 2
+  margin: 0 auto
+  background-color: $primary-color
+
+  @media #{$header-breakpoint-mid}
+    padding: 0 $main-content-padding
+
+  .social-links
+    +display(flex)
+    +justify-content(center)
+    padding: 50px 0 50px 0
+
+  .footer-link
+    +flex(0 0 auto)
+    margin: 0 20px
+
+article.portfolio
+  margin: 0
+  padding: 0
+  max-width: none
+  background-color: #222
+
+  h2, .brief
+    text-align: center
+
+.portfolio-piece
+  width: 100vw
+  height: 50vw
+  background: no-repeat 0 0
+  background-size: cover
+  overflow: hidden
+  position: relative
+
+  h2
+    display: block
+    margin: 0
+    position: absolute
+    top: -30%
+    left: 50%
+    transform: translate3d(-50%, 0%, 0)
+    transition: all 300ms ease-in-out
+
+  &:hover
+    h2
+      top: 50%
+      transform: translate3d(-50%, -50%, 0)
+
+  @media #{$portfolio-breakpoint-mid}
+    float: left
+    width: 50vw
+    background-position: center center
+
+    h2
+      transition-duration: 200ms
+
+  @media #{$portfolio-breakpoint-large}
+    width: 33.3332vw
+    height: 33.3332vw
+
+  @each $piece in (neo, cld, icann, forever, viewabill, iwitness)
+    &.#{$piece}
+      background-image: $hover-image-filter, url("/assets/images/#{$piece}0.jpg")
+      &:hover
+        background-image: $image-filter, url("/assets/images/#{$piece}0.jpg")
+
+.related-articles
+  +display(flex)
+  height: 130px
+
+  .related-article
+    +flex(1 1 50%)
+    height: 130px
+    text-align: center
+    +display(flex)
+    +justify-content(center)
+    +align-items(center)
+    transition: margin-top 0.3s
+    background-color: hsl(20,5,10)
+    margin-top: 30px
+
+    &:hover
+      margin-top: 0
+
+    .fa
+      padding: 0 8px
+      margin-top: 3px
+
+.quote
+  border-left: 8px solid $quote-block-border-color
+  padding: 0 30px
+
+aside
+  float: right
+  padding: 20px
+
+.ref
+  color: red
