@@ -1,0 +1,32 @@
+---
+title: "File IO Best Practices"
+permalink: "/writing/file_io_best_practices"
+---
+
+<article>
+  <h2>Section Title</h2>
+  <p>
+  Lorem ipsum dolor sit amet, <a href="/">consectetur adipiscing elit</a>. Donec a diam lectus. Sed sit amet ipsum mauris.<!-- excerpt-end --> Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem. Ut turpis felis, pulvinar a semper sed, adipiscing id dolor. Pellentesque auctor nisi id magna consequat sagittis. Curabitur dapibus enim sit amet elit pharetra tincidunt feugiat nisl imperdiet. Ut convallis libero in urna ultrices accumsan. Donec sed odio eros. Donec viverra mi quis quam pulvinar at malesuada arcu rhoncus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In rutrum accumsan ultricies. Mauris vitae nisi at sem facilisis semper ac in est.
+
+  When I have a 300MB file that needs processed, how should I approach the problem?
+
+  BufferedReader? Fixed size? Minimum size? Max? Streaming? Single buffer vs multiple buffers?!
+  When I want to process a regex, should I split the string into lines?
+  When I want to divvy up work amongst different worker threads, how should I do that? How many threads?
+  How do I handle splitting a string while maintaining the valid UTF8 code points?
+  How do I avoid needlessly allocating more and more strings?
+
+  https://stackoverflow.com/questions/16378468/proper-efficient-file-reading
+
+  mmap -> one read from disk
+
+  slice-like structs for scanning results:
+    - results from scanning a string return indicies within the main buffer
+    - to_s methods will slice the buffer, print out the contents
+    - constant size structs! just fat pointers!
+
+  - write any output to another buffer
+    - avoids constant syscalls going out, just like reading the file
+  </p>
+</article>
+
