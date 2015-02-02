@@ -4,6 +4,8 @@
     {% if page.subtitle %}
       <h2>{{ page.subtitle }}</h2>
     {% endif %}
-    {% contentblock hero %}
+    {% if page.url == '/' %}
+      {% include landing_hero_content.html %}
+    {% endif %}
   </div>
 </div>
