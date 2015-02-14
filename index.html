@@ -4,3 +4,43 @@ permalink: "/"
 title: Hi, I'm Alex Burkhart
 ---
 
+<article>
+  <div class="upcoming-speaking">
+    <h2>Soon I'll be speaking at</h2>
+
+    <div class="speaking-engagement">
+      <div class="logo">
+        <a href="http://columbusrb.com/">
+          <img class="ruby-logo" src="/assets/images/ruby-logo.png" alt="Columbus Ruby Brigade"/>
+        </a>
+      </div>
+      <ul class="speaking-engagement-details">
+        <li><a href="http://columbusrb.com/">Columbus Ruby Brigade</a></li>
+        <li>How to Impress Your Friends and Coworkers with 5 Amazing Pry Tricks</li>
+        <li>7-9pm February 16th</li>
+        <li>Columbus, Ohio</li>
+      </ul>
+    </div>
+
+    <div class="speaking-engagement">
+      <div class="logo">
+        <a href="http://www.codepalousa.com/">
+          <img class="code-palousa-logo" src="/assets/images/code-palousa-logo.png" alt="Code PaLOUsa 2015"/>
+          <img class="rust-logo" src="/assets/images/rust-logo.png" alt="Rust Lang"/>
+        </a>
+      </div>
+      <ul class="speaking-engagement-details">
+        <li><a href="http://www.codepalousa.com/">Code PaLOUsa 2015</a></li>
+        <li>Rust or: How I Learned to Stop Worrying and Love the Compiler</li>
+        <li>8-5:30pm April 27th</li>
+        <li>Louisville, Kentucky</li>
+      </ul>
+    </div>
+  </div>
+
+  <div>
+    <h2>Recently I've Written</h2>
+    {% assign post = site.posts.first %}
+    {% include post_preview.html post=post %}
+  </div>
+</article>

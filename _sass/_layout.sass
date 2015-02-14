@@ -143,7 +143,32 @@ article
   @media #{$full-width-breakpoint}
     padding: $vertical-padding 0
 
-.archive-entry
+.upcoming-speaking
+  .speaking-engagement
+    +display(flex)
+
+  .logo
+    display: none
+    +flex(0 0 200px)
+
+    .ruby-logo
+      +size(120px)
+      margin: 0 40px
+
+    .rust-logo
+      +size(80px)
+      margin: 0 60px
+
+  .speaking-engagement-details
+    +flex(1 1 auto)
+    margin-bottom: 30px
+
+  @media #{$speaking-engagement-breakpoint-mid}
+    .logo
+      display: block
+
+
+.post-preview
   margin: 0 auto 30px
 
   .excerpt
@@ -256,3 +281,5 @@ aside
 
 .ref
   color: red
+
+.index-card
