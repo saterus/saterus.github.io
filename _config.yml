@@ -1,5 +1,5 @@
 name: Alex Burkhart
-baseurl: "https://saterus.github.io"
+baseurl: "https://alexburkhart.com"
 exclude: [
   .git,
   .gitignore,
