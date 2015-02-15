@@ -13,6 +13,7 @@ exclude: [
 ]
 permalink: "/writing/:title"
 excerpt_separator: "<!-- excerpt-end -->"
+google_analytics_code: "UA-59756024-1"
 defaults:
   -
     scope:
